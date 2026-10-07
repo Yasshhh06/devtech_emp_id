@@ -54,39 +54,41 @@ export const EmployeesPage: React.FC<EmployeesProps> = ({
   // Unify Employees and Interns into standardized rows
   const { allRecords, availableYears, availableDepartments } = useMemo(() => {
     const empRecords: (UnifiedPersonnel & { year: string })[] = (employees || []).map(emp => {
-      const yearStr = emp.dateOfJoining || '2026';
-      const year = yearStr.match(/\d{4}/)?.[0] || '2026';
+      const yearStr = String(emp?.dateOfJoining || '2026');
+      const match = yearStr.match(/\d{4}/);
+      const year = match && match[0] ? match[0] : '2026';
       return {
-        id: emp.id,
-        publicId: emp.employeeId,
-        fullName: emp.fullName,
-        photo: emp.photo,
+        id: String(emp?.id || Math.random()),
+        publicId: String(emp?.employeeId || emp?.employeeCode || 'DTS-EMP-0001'),
+        fullName: String(emp?.fullName || 'Employee'),
+        photo: String(emp?.photo || ''),
         personnelType: 'Employee' as const,
-        designation: emp.designation,
-        department: emp.department,
-        status: emp.status || 'Active',
-        emailOrCollege: emp.companyEmail || (emp as any).email || 'employee@devtech.com',
-        joiningOrStartDate: emp.dateOfJoining || 'Jan 2026',
+        designation: String(emp?.designation || 'Software Engineer'),
+        department: String(emp?.department || 'Development'),
+        status: (emp?.status || 'Active') as any,
+        emailOrCollege: String(emp?.companyEmail || (emp as any)?.email || 'employee@devtech.com'),
+        joiningOrStartDate: String(emp?.dateOfJoining || 'Jan 2026'),
         rawRecord: emp,
         year
       };
     });
 
     const intRecords: (UnifiedPersonnel & { year: string })[] = (interns || []).map(i => {
-      const yearStr = i.startDate || '2026';
-      const year = yearStr.match(/\d{4}/)?.[0] || '2026';
-      const emailCol = i.college ? `${i.college} • ${i.email}` : i.email || 'IIT Bombay';
+      const yearStr = String(i?.startDate || '2026');
+      const match = yearStr.match(/\d{4}/);
+      const year = match && match[0] ? match[0] : '2026';
+      const emailCol = i?.college ? `${i.college} • ${i.email || ''}` : String(i?.email || 'IIT Bombay');
       return {
-        id: i.id,
-        publicId: i.internId || i.internCode || 'DTS-INT-0001',
-        fullName: i.fullName,
-        photo: i.photo,
+        id: String(i?.id || Math.random()),
+        publicId: String(i?.internId || i?.internCode || 'DTS-INT-0001'),
+        fullName: String(i?.fullName || 'Intern'),
+        photo: String(i?.photo || ''),
         personnelType: 'Intern' as const,
-        designation: i.role || 'Software Engineering Intern',
-        department: i.department || 'Development',
-        status: i.status || 'Active',
+        designation: String(i?.role || 'Software Engineering Intern'),
+        department: String(i?.department || 'Development'),
+        status: (i?.status || 'Active') as any,
         emailOrCollege: emailCol,
-        joiningOrStartDate: i.startDate || 'Aug 2026',
+        joiningOrStartDate: String(i?.startDate || 'Aug 2026'),
         rawRecord: i,
         year
       };
