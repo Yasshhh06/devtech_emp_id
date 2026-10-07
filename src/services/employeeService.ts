@@ -1,6 +1,6 @@
 "use client";
 import { Employee, EmployeeStatus, VerificationLog, AuditLog, SystemSettings, Intern } from '../types';
-import { INITIAL_EMPLOYEES, INITIAL_SETTINGS, INITIAL_AUDIT_LOGS, INITIAL_VERIFICATION_LOGS, INITIAL_INTERNS } from '../data/initialData';
+import { INITIAL_SETTINGS } from '../data/initialData';
 import { 
   db, 
   isFirebaseConfigured, 
@@ -208,31 +208,32 @@ const mapRowToIntern = (row: any): Intern => ({
 
 const initLocalStorage = () => {
   if (typeof window === 'undefined') return;
-  
+
+  const CLEAN_KEY = 'devtech_db_cleaned_v2';
+  if (!localStorage.getItem(CLEAN_KEY)) {
+    localStorage.setItem(LOCAL_STORAGE_KEYS.EMPLOYEES, JSON.stringify([]));
+    localStorage.setItem(LOCAL_STORAGE_KEYS.INTERNS, JSON.stringify([]));
+    localStorage.setItem(LOCAL_STORAGE_KEYS.AUDIT_LOGS, JSON.stringify([]));
+    localStorage.setItem(LOCAL_STORAGE_KEYS.VERIFICATION_LOGS, JSON.stringify([]));
+    localStorage.setItem('devtech_workforce_vault_documents', JSON.stringify([]));
+    localStorage.setItem('devtech_workforce_vault_certificates', JSON.stringify([]));
+    localStorage.setItem(CLEAN_KEY, 'true');
+  }
+
   if (!localStorage.getItem(LOCAL_STORAGE_KEYS.EMPLOYEES)) {
-    localStorage.setItem(LOCAL_STORAGE_KEYS.EMPLOYEES, JSON.stringify(INITIAL_EMPLOYEES));
+    localStorage.setItem(LOCAL_STORAGE_KEYS.EMPLOYEES, JSON.stringify([]));
   }
   if (!localStorage.getItem(LOCAL_STORAGE_KEYS.SETTINGS)) {
     localStorage.setItem(LOCAL_STORAGE_KEYS.SETTINGS, JSON.stringify(INITIAL_SETTINGS));
-  } else {
-    // Sanitize any large base64 logo in existing settings
-    try {
-      const existing = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.SETTINGS) || '{}');
-      if (existing.companyLogo && existing.companyLogo.length > 450000) {
-        existing.companyLogo = '/login-logo.png';
-        localStorage.setItem(LOCAL_STORAGE_KEYS.SETTINGS, JSON.stringify(existing));
-      }
-    } catch (e) {}
   }
-
   if (!localStorage.getItem(LOCAL_STORAGE_KEYS.AUDIT_LOGS)) {
-    localStorage.setItem(LOCAL_STORAGE_KEYS.AUDIT_LOGS, JSON.stringify(INITIAL_AUDIT_LOGS));
+    localStorage.setItem(LOCAL_STORAGE_KEYS.AUDIT_LOGS, JSON.stringify([]));
   }
   if (!localStorage.getItem(LOCAL_STORAGE_KEYS.VERIFICATION_LOGS)) {
-    localStorage.setItem(LOCAL_STORAGE_KEYS.VERIFICATION_LOGS, JSON.stringify(INITIAL_VERIFICATION_LOGS));
+    localStorage.setItem(LOCAL_STORAGE_KEYS.VERIFICATION_LOGS, JSON.stringify([]));
   }
   if (!localStorage.getItem(LOCAL_STORAGE_KEYS.INTERNS)) {
-    localStorage.setItem(LOCAL_STORAGE_KEYS.INTERNS, JSON.stringify(INITIAL_INTERNS));
+    localStorage.setItem(LOCAL_STORAGE_KEYS.INTERNS, JSON.stringify([]));
   }
 };
 
@@ -299,29 +300,16 @@ export const getEmployees = async (): Promise<Employee[]> => {
   if (isFirebaseConfigured && db) {
     try {
       const snap = await getDocs(collection(db, 'employees'));
-      if (!snap.empty) {
-        const firebaseDocs = snap.docs.map(docSnap => mapRowToEmployee({ id: docSnap.id, ...docSnap.data() }));
-        localStorage.setItem(LOCAL_STORAGE_KEYS.EMPLOYEES, JSON.stringify(firebaseDocs));
-        return firebaseDocs;
-      }
+      const firebaseDocs = snap.docs.map(docSnap => mapRowToEmployee({ id: docSnap.id, ...docSnap.data() }));
+      localStorage.setItem(LOCAL_STORAGE_KEYS.EMPLOYEES, JSON.stringify(firebaseDocs));
+      return firebaseDocs;
     } catch (e) {
       console.warn('Firebase employees fetch failed, falling back:', e);
     }
   }
 
-  if (isSupabaseConfigured && supabase) {
-    try {
-      const { data, error } = await supabase.from('employees').select('*').order('created_at', { ascending: false });
-      if (!error && data && data.length > 0) {
-        return data.map(mapRowToEmployee);
-      }
-    } catch (e) {
-      console.warn('Supabase employees fetch failed:', e);
-    }
-  }
-
   const raw = localStorage.getItem(LOCAL_STORAGE_KEYS.EMPLOYEES);
-  return raw ? JSON.parse(raw) : INITIAL_EMPLOYEES;
+  return raw ? JSON.parse(raw) : [];
 };
 
 export const getEmployeeByEmployeeId = async (employeeId: string): Promise<Employee | null> => {
@@ -361,14 +349,6 @@ export const createEmployee = async (employeeData: Omit<Employee, 'id' | 'create
       await setDoc(doc(db, 'employees', newDocId), sanitizeForFirestore(newEmployee));
     } catch (e) {
       console.warn('Firebase save employee failed:', e);
-    }
-  }
-
-  if (isSupabaseConfigured && supabase) {
-    try {
-      await supabase.from('employees').insert([newEmployee]);
-    } catch (e) {
-      console.warn('Supabase save employee failed:', e);
     }
   }
 
@@ -457,18 +437,16 @@ export const getInterns = async (): Promise<Intern[]> => {
   if (isFirebaseConfigured && db) {
     try {
       const snap = await getDocs(collection(db, 'interns'));
-      if (!snap.empty) {
-        const firebaseDocs = snap.docs.map(docSnap => mapRowToIntern({ id: docSnap.id, ...docSnap.data() }));
-        localStorage.setItem(LOCAL_STORAGE_KEYS.INTERNS, JSON.stringify(firebaseDocs));
-        return firebaseDocs;
-      }
+      const firebaseDocs = snap.docs.map(docSnap => mapRowToIntern({ id: docSnap.id, ...docSnap.data() }));
+      localStorage.setItem(LOCAL_STORAGE_KEYS.INTERNS, JSON.stringify(firebaseDocs));
+      return firebaseDocs;
     } catch (e) {
       console.warn('Firebase interns fetch failed:', e);
     }
   }
 
   const raw = localStorage.getItem(LOCAL_STORAGE_KEYS.INTERNS);
-  return raw ? JSON.parse(raw) : INITIAL_INTERNS;
+  return raw ? JSON.parse(raw) : [];
 };
 
 export const getInternByInternId = async (internId: string): Promise<Intern | null> => {
@@ -614,7 +592,7 @@ export const recordVerification = async (employeeId: string, status: EmployeeSta
   };
 
   const existingLogsRaw = localStorage.getItem(LOCAL_STORAGE_KEYS.VERIFICATION_LOGS);
-  const existingLogs: VerificationLog[] = existingLogsRaw ? JSON.parse(existingLogsRaw) : INITIAL_VERIFICATION_LOGS;
+  const existingLogs: VerificationLog[] = existingLogsRaw ? JSON.parse(existingLogsRaw) : [];
   localStorage.setItem(LOCAL_STORAGE_KEYS.VERIFICATION_LOGS, JSON.stringify([newLog, ...existingLogs]));
 
   if (isFirebaseConfigured && db) {
@@ -644,16 +622,14 @@ export const getVerificationLogs = async (): Promise<VerificationLog[]> => {
   if (isFirebaseConfigured && db) {
     try {
       const snap = await getDocs(collection(db, 'verification_logs'));
-      if (!snap.empty) {
-        return snap.docs.map(d => d.data() as VerificationLog);
-      }
+      return snap.docs.map(d => d.data() as VerificationLog);
     } catch (e) {
       console.warn('Firebase verification logs fetch failed:', e);
     }
   }
 
   const raw = localStorage.getItem(LOCAL_STORAGE_KEYS.VERIFICATION_LOGS);
-  return raw ? JSON.parse(raw) : INITIAL_VERIFICATION_LOGS;
+  return raw ? JSON.parse(raw) : [];
 };
 
 export const addAuditLog = async (logData: Omit<AuditLog, 'id' | 'timestamp'>): Promise<void> => {
@@ -665,7 +641,7 @@ export const addAuditLog = async (logData: Omit<AuditLog, 'id' | 'timestamp'>): 
   };
 
   const raw = localStorage.getItem(LOCAL_STORAGE_KEYS.AUDIT_LOGS);
-  const logs: AuditLog[] = raw ? JSON.parse(raw) : INITIAL_AUDIT_LOGS;
+  const logs: AuditLog[] = raw ? JSON.parse(raw) : [];
   localStorage.setItem(LOCAL_STORAGE_KEYS.AUDIT_LOGS, JSON.stringify([newLog, ...logs]));
 
   if (isFirebaseConfigured && db) {
@@ -681,16 +657,14 @@ export const getAuditLogs = async (): Promise<AuditLog[]> => {
   if (isFirebaseConfigured && db) {
     try {
       const snap = await getDocs(collection(db, 'audit_logs'));
-      if (!snap.empty) {
-        return snap.docs.map(d => d.data() as AuditLog);
-      }
+      return snap.docs.map(d => d.data() as AuditLog);
     } catch (e) {
       console.warn('Firebase audit logs fetch failed:', e);
     }
   }
 
   const raw = localStorage.getItem(LOCAL_STORAGE_KEYS.AUDIT_LOGS);
-  return raw ? JSON.parse(raw) : INITIAL_AUDIT_LOGS;
+  return raw ? JSON.parse(raw) : [];
 };
 
 export const getSystemSettings = (): SystemSettings => {
@@ -755,4 +729,30 @@ export const clearAllDataAndReset = async (): Promise<void> => {
   localStorage.setItem(LOCAL_STORAGE_KEYS.INTERNS, JSON.stringify([]));
   localStorage.setItem(LOCAL_STORAGE_KEYS.AUDIT_LOGS, JSON.stringify([]));
   localStorage.setItem(LOCAL_STORAGE_KEYS.VERIFICATION_LOGS, JSON.stringify([]));
+  localStorage.setItem('devtech_workforce_vault_documents', JSON.stringify([]));
+  localStorage.setItem('devtech_workforce_vault_certificates', JSON.stringify([]));
+  localStorage.setItem('devtech_db_cleaned_v2', 'true');
+
+  if (isFirebaseConfigured && db) {
+    try {
+      const empSnap = await getDocs(collection(db, 'employees'));
+      for (const d of empSnap.docs) {
+        await deleteDoc(doc(db, 'employees', d.id));
+      }
+      const intSnap = await getDocs(collection(db, 'interns'));
+      for (const d of intSnap.docs) {
+        await deleteDoc(doc(db, 'interns', d.id));
+      }
+      const vlogSnap = await getDocs(collection(db, 'verification_logs'));
+      for (const d of vlogSnap.docs) {
+        await deleteDoc(doc(db, 'verification_logs', d.id));
+      }
+      const auditSnap = await getDocs(collection(db, 'audit_logs'));
+      for (const d of auditSnap.docs) {
+        await deleteDoc(doc(db, 'audit_logs', d.id));
+      }
+    } catch (e) {
+      console.warn('Firebase wipe failed:', e);
+    }
+  }
 };

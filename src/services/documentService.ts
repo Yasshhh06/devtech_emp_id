@@ -44,119 +44,17 @@ const LOCAL_STORAGE_KEYS = {
   CERTIFICATES: 'devtech_workforce_vault_certificates'
 };
 
-const INITIAL_DOCUMENTS: WorkforceDocument[] = [
-  {
-    id: 'doc-emp-1',
-    documentName: 'Aadhaar Card',
-    documentCategory: 'Aadhaar Card',
-    documentNumber: 'XXXX-XXXX-4921',
-    fileName: 'Aadhaar_Card_Arjun_Mehta.pdf',
-    fileType: 'PDF',
-    fileSize: '1.8 MB',
-    rawSize: 1887436,
-    uploadDate: '15 Jul 2026',
-    uploadedBy: 'HR Admin',
-    downloadUrl: '#',
-    personnelId: 'DTS-EMP-DEV-0001',
-    personnelName: 'Arjun Mehta',
-    personnelType: 'Employee',
-    status: 'Verified'
-  },
-  {
-    id: 'doc-emp-2',
-    documentName: 'Permanent Account Number',
-    documentCategory: 'PAN Card',
-    documentNumber: 'ABCDE1234F',
-    fileName: 'PAN_Card_Arjun.pdf',
-    fileType: 'PDF',
-    fileSize: '1.2 MB',
-    rawSize: 1258291,
-    uploadDate: '15 Jul 2026',
-    uploadedBy: 'HR Admin',
-    downloadUrl: '#',
-    personnelId: 'DTS-EMP-DEV-0001',
-    personnelName: 'Arjun Mehta',
-    personnelType: 'Employee',
-    status: 'Verified'
-  },
-  {
-    id: 'doc-emp-3',
-    documentName: 'Senior Architecture Resume',
-    documentCategory: 'Resume / CV',
-    fileName: 'Arjun_Mehta_Senior_Architecture_Resume.pdf',
-    fileType: 'PDF',
-    fileSize: '3.1 MB',
-    rawSize: 3250585,
-    uploadDate: '10 Jul 2026',
-    uploadedBy: 'Arjun Mehta',
-    downloadUrl: '#',
-    personnelId: 'DTS-EMP-DEV-0001',
-    personnelName: 'Arjun Mehta',
-    personnelType: 'Employee',
-    status: 'Verified'
-  },
-  {
-    id: 'doc-int-1',
-    documentName: 'Aadhaar Card',
-    documentCategory: 'Aadhaar Card',
-    documentNumber: 'XXXX-XXXX-8842',
-    fileName: 'Aadhaar_Card_Priyanshi.pdf',
-    fileType: 'PDF',
-    fileSize: '1.5 MB',
-    rawSize: 1572864,
-    uploadDate: '01 Aug 2026',
-    uploadedBy: 'HR Admin',
-    downloadUrl: '#',
-    personnelId: 'DTS-INT-DEV-0002',
-    personnelName: 'Priyanshi',
-    personnelType: 'Intern',
-    status: 'Verified'
-  }
-];
+const INITIAL_DOCUMENTS: WorkforceDocument[] = [];
 
-const INITIAL_CERTIFICATES: WorkforceCertificate[] = [
-  {
-    id: 'cert-1',
-    certificateName: 'Google Cybersecurity Professional Certificate',
-    issuingOrganization: 'Google Career Certificates & Coursera',
-    certificateNumber: 'GCC-2026-98921',
-    issueDate: '12 Jan 2026',
-    expiryDate: 'Never',
-    credentialId: 'ABC123XYZ',
-    credentialUrl: 'https://coursera.org/verify/professional-cert/ABC123XYZ',
-    description: 'Mastery in threat vector intelligence, network intrusion detection, SIEM analytics, and cryptographic corporate asset defense.',
-    fileName: 'Google_Cybersecurity_Certificate.pdf',
-    fileType: 'PDF',
-    downloadUrl: '#',
-    personnelId: 'DTS-EMP-DEV-0001',
-    personnelName: 'Arjun Mehta',
-    personnelType: 'Employee'
-  },
-  {
-    id: 'cert-3',
-    certificateName: 'Google Cybersecurity Professional Certificate',
-    issuingOrganization: 'Google',
-    certificateNumber: 'GCC-INT-44219',
-    issueDate: '15 Jul 2026',
-    expiryDate: 'Never',
-    credentialId: 'GCP-CYB-INT99',
-    credentialUrl: 'https://coursera.org/verify/GCP-CYB-INT99',
-    description: 'Comprehensive training in modern zero-trust network protocols, packet forensics, and enterprise endpoint protection.',
-    fileName: 'Priyanshi_Google_Cybersecurity.pdf',
-    fileType: 'PDF',
-    downloadUrl: '#',
-    personnelId: 'DTS-INT-DEV-0002',
-    personnelName: 'Priyanshi',
-    personnelType: 'Intern'
-  }
-];
+const INITIAL_CERTIFICATES: WorkforceCertificate[] = [];
 
 export function initDocumentVault(): void {
+  if (typeof window === 'undefined') return;
   if (!localStorage.getItem(LOCAL_STORAGE_KEYS.DOCUMENTS)) {
-    localStorage.setItem(LOCAL_STORAGE_KEYS.DOCUMENTS, JSON.stringify(INITIAL_DOCUMENTS));
+    localStorage.setItem(LOCAL_STORAGE_KEYS.DOCUMENTS, JSON.stringify([]));
   }
   if (!localStorage.getItem(LOCAL_STORAGE_KEYS.CERTIFICATES)) {
-    localStorage.setItem(LOCAL_STORAGE_KEYS.CERTIFICATES, JSON.stringify(INITIAL_CERTIFICATES));
+    localStorage.setItem(LOCAL_STORAGE_KEYS.CERTIFICATES, JSON.stringify([]));
   }
 }
 
