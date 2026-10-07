@@ -39,6 +39,7 @@ interface EmployeeContextType {
 
   // Actions
   refreshEmployees: () => Promise<void>;
+  refreshInterns: () => Promise<void>;
   createEmployee: (data: Omit<Employee, 'id' | 'createdAt' | 'updatedAt' | 'verificationCount'>) => Promise<Employee>;
   createIntern: (data: Omit<Intern, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Intern>;
   updateIntern: (id: string, updates: Partial<Intern>) => Promise<Intern>;
@@ -322,6 +323,7 @@ export const EmployeeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         selectedEmployee,
         setSelectedEmployee,
         refreshEmployees,
+        refreshInterns,
         createEmployee,
         createIntern,
         updateIntern,

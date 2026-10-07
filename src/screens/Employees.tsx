@@ -7,6 +7,7 @@ import { BulkUploadStudioModal } from '../components/employees/BulkUploadStudioM
 import { InteractiveBadgePreview } from '../components/cards/InteractiveBadgePreview';
 import { InternInteractiveBadgePreview } from '../components/cards/InternInteractiveBadgePreview';
 import { downloadSampleEmployeeExcel, downloadSampleInternExcel } from '../services/excelService';
+import * as employeeService from '../services/employeeService';
 import { useEmployeeContext } from '../context/EmployeeContext';
 import { Employee, Intern } from '../types';
 import { Users, UserPlus, Upload, X, CreditCard, ChevronDown, GraduationCap, User, Download, Sparkles } from 'lucide-react';
@@ -30,6 +31,9 @@ export const EmployeesPage: React.FC<EmployeesProps> = ({
     createIntern,
     deleteEmployee, 
     deleteIntern, 
+    refreshEmployees,
+    refreshInterns,
+    refreshLogs,
     showToast, 
     searchQuery, 
     selectedDepartment, 
@@ -145,7 +149,7 @@ export const EmployeesPage: React.FC<EmployeesProps> = ({
 
   const handleSaveBulkEmployees = async (bulkData: Partial<Employee>[]) => {
     for (const item of bulkData) {
-      await createEmployee({
+      await employeeService.createEmployee({
         employeeId: item.employeeId || '',
         employeeCode: item.employeeCode || '',
         fullName: item.fullName || 'New Employee',
@@ -171,11 +175,14 @@ export const EmployeesPage: React.FC<EmployeesProps> = ({
         createdBy: 'HR Admin'
       });
     }
+    await refreshEmployees();
+    await refreshLogs();
+    showToast('Bulk Upload Completed!', 'success', `Successfully saved ${bulkData.length} employees to Database.`);
   };
 
   const handleSaveBulkInterns = async (bulkData: Partial<Intern>[]) => {
     for (const item of bulkData) {
-      await createIntern({
+      await employeeService.createIntern({
         internId: item.internId || '',
         internCode: item.internCode || '',
         fullName: item.fullName || 'New Intern',
@@ -192,6 +199,9 @@ export const EmployeesPage: React.FC<EmployeesProps> = ({
         phone: item.phone || '+91 98000 00000'
       });
     }
+    await refreshInterns();
+    await refreshLogs();
+    showToast('Bulk Upload Completed!', 'success', `Successfully saved ${bulkData.length} interns to Database.`);
   };
 
   return (

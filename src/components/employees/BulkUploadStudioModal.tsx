@@ -26,6 +26,7 @@ import {
   Camera,
   CheckCircle2
 } from 'lucide-react';
+import { compressImage } from '../../utils/imageUtils';
 
 interface BulkUploadStudioModalProps {
   isOpen: boolean;
@@ -92,13 +93,12 @@ export const BulkUploadStudioModal: React.FC<BulkUploadStudioModalProps> = ({
     }
   };
 
-  const handlePhotoUploadForRecord = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUploadForRecord = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
+    try {
+      const dataUrl = await compressImage(file, 300, 300, 0.75);
       if (recordType === 'Employee') {
         const updated = [...parsedEmployees];
         updated[index] = { ...updated[index], photo: dataUrl };
@@ -108,9 +108,10 @@ export const BulkUploadStudioModal: React.FC<BulkUploadStudioModalProps> = ({
         updated[index] = { ...updated[index], photo: dataUrl };
         setParsedInterns(updated);
       }
-      showToast('Photo Updated', 'success', `Photo assigned for record #${index + 1}`);
-    };
-    reader.readAsDataURL(file);
+      showToast('Photo Updated', 'success', `Photo assigned & optimized for badge #${index + 1}`);
+    } catch {
+      showToast('Photo Error', 'error', 'Failed to process image');
+    }
   };
 
   const handlePresetPhotoSelect = (index: number, photoUrl: string) => {

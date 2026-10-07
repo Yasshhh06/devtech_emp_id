@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import { Camera, Upload, X, Check, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { compressImage } from '../../utils/imageUtils';
 
 interface PhotoCropperModalProps {
   isOpen: boolean;
@@ -32,16 +33,13 @@ export const PhotoCropperModal: React.FC<PhotoCropperModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setSelectedImage(event.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
+      const compressed = await compressImage(file, 300, 300, 0.75);
+      if (compressed) {
+        setSelectedImage(compressed);
+      }
     }
   };
 

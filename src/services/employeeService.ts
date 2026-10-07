@@ -293,6 +293,27 @@ export const generateNextEmployeeId = (employees: { employeeId?: string }[], des
   return generateEnterpriseId('EMP', designation || 'Development', employees as any);
 };
 
+// Safe Local Storage Helpers to prevent QuotaExceededError and client-side crashes
+const safeLocalStorageGet = <T>(key: string, fallback: T): T => {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (e) {
+    console.warn(`Safe Storage Read Warning (${key}):`, e);
+    return fallback;
+  }
+};
+
+const safeLocalStorageSet = (key: string, value: any): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (e) {
+    console.warn(`Safe Storage Write Warning (${key}): Storage full or quota exceeded:`, e);
+  }
+};
+
 // ==========================================
 // FIREBASE & LOCAL STORAGE HYBRID EMPLOYEES CRUD
 // ==========================================
@@ -301,15 +322,14 @@ export const getEmployees = async (): Promise<Employee[]> => {
     try {
       const snap = await getDocs(collection(db, 'employees'));
       const firebaseDocs = snap.docs.map(docSnap => mapRowToEmployee({ id: docSnap.id, ...docSnap.data() }));
-      localStorage.setItem(LOCAL_STORAGE_KEYS.EMPLOYEES, JSON.stringify(firebaseDocs));
+      safeLocalStorageSet(LOCAL_STORAGE_KEYS.EMPLOYEES, firebaseDocs);
       return firebaseDocs;
     } catch (e) {
-      console.warn('Firebase employees fetch failed, falling back:', e);
+      console.warn('Firebase employees fetch failed, falling back to local cache:', e);
     }
   }
 
-  const raw = localStorage.getItem(LOCAL_STORAGE_KEYS.EMPLOYEES);
-  return raw ? JSON.parse(raw) : [];
+  return safeLocalStorageGet<Employee[]>(LOCAL_STORAGE_KEYS.EMPLOYEES, []);
 };
 
 export const getEmployeeByEmployeeId = async (employeeId: string): Promise<Employee | null> => {
@@ -353,7 +373,7 @@ export const createEmployee = async (employeeData: Omit<Employee, 'id' | 'create
   }
 
   const updatedList = [newEmployee, ...employees];
-  localStorage.setItem(LOCAL_STORAGE_KEYS.EMPLOYEES, JSON.stringify(updatedList));
+  safeLocalStorageSet(LOCAL_STORAGE_KEYS.EMPLOYEES, updatedList);
 
   await addAuditLog({
     action: 'Employee Created',
@@ -387,7 +407,7 @@ export const updateEmployee = async (id: string, updates: Partial<Employee>, upd
   }
 
   employees[index] = updated;
-  localStorage.setItem(LOCAL_STORAGE_KEYS.EMPLOYEES, JSON.stringify(employees));
+  safeLocalStorageSet(LOCAL_STORAGE_KEYS.EMPLOYEES, employees);
 
   await addAuditLog({
     action: 'Employee Updated',
@@ -418,7 +438,7 @@ export const deleteEmployee = async (id: string, deletedBy: string = 'HR Admin')
     }
 
     const filtered = employees.filter(emp => emp.id !== existing.id);
-    localStorage.setItem(LOCAL_STORAGE_KEYS.EMPLOYEES, JSON.stringify(filtered));
+    safeLocalStorageSet(LOCAL_STORAGE_KEYS.EMPLOYEES, filtered);
 
     await addAuditLog({
       action: 'Employee Deleted',
@@ -438,15 +458,14 @@ export const getInterns = async (): Promise<Intern[]> => {
     try {
       const snap = await getDocs(collection(db, 'interns'));
       const firebaseDocs = snap.docs.map(docSnap => mapRowToIntern({ id: docSnap.id, ...docSnap.data() }));
-      localStorage.setItem(LOCAL_STORAGE_KEYS.INTERNS, JSON.stringify(firebaseDocs));
+      safeLocalStorageSet(LOCAL_STORAGE_KEYS.INTERNS, firebaseDocs);
       return firebaseDocs;
     } catch (e) {
       console.warn('Firebase interns fetch failed:', e);
     }
   }
 
-  const raw = localStorage.getItem(LOCAL_STORAGE_KEYS.INTERNS);
-  return raw ? JSON.parse(raw) : [];
+  return safeLocalStorageGet<Intern[]>(LOCAL_STORAGE_KEYS.INTERNS, []);
 };
 
 export const getInternByInternId = async (internId: string): Promise<Intern | null> => {
@@ -488,7 +507,7 @@ export const createIntern = async (data: Omit<Intern, 'id' | 'createdAt' | 'upda
   }
 
   const updated = [newIntern, ...internsList];
-  localStorage.setItem(LOCAL_STORAGE_KEYS.INTERNS, JSON.stringify(updated));
+  safeLocalStorageSet(LOCAL_STORAGE_KEYS.INTERNS, updated);
 
   await addAuditLog({
     action: 'Employee Created',
@@ -522,7 +541,7 @@ export const updateIntern = async (id: string, updates: Partial<Intern>, updated
   }
 
   internsList[index] = updated;
-  localStorage.setItem(LOCAL_STORAGE_KEYS.INTERNS, JSON.stringify(internsList));
+  safeLocalStorageSet(LOCAL_STORAGE_KEYS.INTERNS, internsList);
 
   await addAuditLog({
     action: 'Employee Updated',
@@ -549,7 +568,7 @@ export const deleteIntern = async (id: string, deletedBy: string = 'HR Admin'): 
     }
 
     const filtered = internsList.filter(i => i.id !== existing.id);
-    localStorage.setItem(LOCAL_STORAGE_KEYS.INTERNS, JSON.stringify(filtered));
+    safeLocalStorageSet(LOCAL_STORAGE_KEYS.INTERNS, filtered);
 
     await addAuditLog({
       action: 'Employee Deleted',
