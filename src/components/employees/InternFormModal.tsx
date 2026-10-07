@@ -22,6 +22,12 @@ export const InternFormModal: React.FC<InternFormModalProps> = ({
   onSuccess,
   internToEdit
 }) => {
+  const [mounted, setMounted] = useState<boolean>(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const { interns, createIntern, updateIntern, showToast } = useEmployeeContext();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isPhotoCropperOpen, setIsPhotoCropperOpen] = useState<boolean>(false);
@@ -126,7 +132,7 @@ export const InternFormModal: React.FC<InternFormModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted || typeof window === 'undefined') return null;
 
   return createPortal(
     <AnimatePresence>

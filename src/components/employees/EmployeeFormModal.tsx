@@ -36,6 +36,12 @@ export const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
   onClose,
   employeeToEdit
 }) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const { employees, createEmployee, updateEmployee, showToast } = useEmployeeContext();
   const [currentStep, setCurrentStep] = useState<number>(1);
   const totalSteps = 3;
@@ -156,7 +162,7 @@ export const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
     status: status,
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted || typeof window === 'undefined') return null;
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-[8px] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fadeIn select-none">
