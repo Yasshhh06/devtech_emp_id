@@ -14,12 +14,14 @@ import { Users, UserPlus, Upload, X, CreditCard, ChevronDown, GraduationCap, Use
 import { EmployeeFilters, PersonnelFilterType } from '../components/employees/EmployeeFilters';
 
 interface EmployeesProps {
+  defaultTab?: PersonnelFilterType;
   isAddModalOpen: boolean;
   onCloseAddModal: () => void;
   onOpenAddModal: () => void;
 }
 
 export const EmployeesPage: React.FC<EmployeesProps> = ({
+  defaultTab = 'all',
   isAddModalOpen,
   onCloseAddModal,
   onOpenAddModal,
@@ -40,7 +42,13 @@ export const EmployeesPage: React.FC<EmployeesProps> = ({
     selectedStatus 
   } = useEmployeeContext();
 
-  const [personnelType, setPersonnelType] = useState<PersonnelFilterType>('all');
+  const [personnelType, setPersonnelType] = useState<PersonnelFilterType>(defaultTab);
+
+  React.useEffect(() => {
+    if (defaultTab) {
+      setPersonnelType(defaultTab);
+    }
+  }, [defaultTab]);
   const [selectedJoiningYear, setSelectedJoiningYear] = useState<string>('All');
 
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
@@ -259,53 +267,71 @@ export const EmployeesPage: React.FC<EmployeesProps> = ({
             <span>Excel Bulk Studio</span>
           </button>
 
-          {/* Onboard Dropdown Menu */}
-          <div className="relative">
+          {/* Onboard Action Button */}
+          {personnelType === 'interns' ? (
             <button
-              onClick={() => setIsOnboardMenuOpen(!isOnboardMenuOpen)}
+              onClick={() => setIsInternAddModalOpen(true)}
+              className="saas-btn-primary !bg-[#059669] hover:!bg-[#047857] !px-3.5 sm:!px-4 !py-2.5 !text-xs !rounded-[14px] flex items-center gap-1.5 shadow-md shadow-[#059669]/25"
+            >
+              <GraduationCap className="w-4 h-4" />
+              <span>Onboard Intern</span>
+            </button>
+          ) : personnelType === 'employees' ? (
+            <button
+              onClick={onOpenAddModal}
               className="saas-btn-primary !px-3.5 sm:!px-4 !py-2.5 !text-xs !rounded-[14px] flex items-center gap-1.5 shadow-md shadow-[#2563EB]/25"
             >
               <UserPlus className="w-4 h-4" />
-              <span>Onboard Person</span>
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isOnboardMenuOpen ? 'rotate-180' : ''}`} />
+              <span>Onboard Employee</span>
             </button>
+          ) : (
+            <div className="relative">
+              <button
+                onClick={() => setIsOnboardMenuOpen(!isOnboardMenuOpen)}
+                className="saas-btn-primary !px-3.5 sm:!px-4 !py-2.5 !text-xs !rounded-[14px] flex items-center gap-1.5 shadow-md shadow-[#2563EB]/25"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Onboard Person</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isOnboardMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
 
-            {isOnboardMenuOpen && (
-              <div className="absolute right-0 mt-2 w-56 bg-white border border-[#E5E7EB] rounded-[18px] shadow-2xl p-2 z-50 animate-fadeIn space-y-1">
-                <button
-                  onClick={() => {
-                    setIsOnboardMenuOpen(false);
-                    onOpenAddModal();
-                  }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[12px] hover:bg-[#DBEAFE]/40 text-left text-xs font-bold text-[#111827] transition-colors"
-                >
-                  <div className="w-7 h-7 rounded-[10px] bg-[#DBEAFE] text-[#2563EB] flex items-center justify-center font-bold">
-                    <User className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="font-extrabold text-[#111827]">New Employee</div>
-                    <div className="text-[10px] text-[#6B7280]">Full-time / Permanent Staff</div>
-                  </div>
-                </button>
+              {isOnboardMenuOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white border border-[#E5E7EB] rounded-[18px] shadow-2xl p-2 z-50 animate-fadeIn space-y-1">
+                  <button
+                    onClick={() => {
+                      setIsOnboardMenuOpen(false);
+                      onOpenAddModal();
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[12px] hover:bg-[#DBEAFE]/40 text-left text-xs font-bold text-[#111827] transition-colors"
+                  >
+                    <div className="w-7 h-7 rounded-[10px] bg-[#DBEAFE] text-[#2563EB] flex items-center justify-center font-bold">
+                      <User className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-extrabold text-[#111827]">New Employee</div>
+                      <div className="text-[10px] text-[#6B7280]">Full-time / Permanent Staff</div>
+                    </div>
+                  </button>
 
-                <button
-                  onClick={() => {
-                    setIsOnboardMenuOpen(false);
-                    setIsInternAddModalOpen(true);
-                  }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[12px] hover:bg-[#D1FAE5]/40 text-left text-xs font-bold text-[#111827] transition-colors"
-                >
-                  <div className="w-7 h-7 rounded-[10px] bg-[#D1FAE5] text-[#059669] flex items-center justify-center font-bold">
-                    <GraduationCap className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="font-extrabold text-[#111827]">New Intern</div>
-                    <div className="text-[10px] text-[#6B7280]">Student / Trainee Assignment</div>
-                  </div>
-                </button>
-              </div>
-            )}
-          </div>
+                  <button
+                    onClick={() => {
+                      setIsOnboardMenuOpen(false);
+                      setIsInternAddModalOpen(true);
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[12px] hover:bg-[#D1FAE5]/40 text-left text-xs font-bold text-[#111827] transition-colors"
+                  >
+                    <div className="w-7 h-7 rounded-[10px] bg-[#D1FAE5] text-[#059669] flex items-center justify-center font-bold">
+                      <GraduationCap className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-extrabold text-[#111827]">New Intern</div>
+                      <div className="text-[10px] text-[#6B7280]">Student / Trainee Assignment</div>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
         </div>
       </div>
@@ -330,6 +356,8 @@ export const EmployeesPage: React.FC<EmployeesProps> = ({
         onDeleteRecord={handleDeleteRecord}
         onOpenCardModal={(record, type) => setPreviewModalData({ record, type })}
         onOpenAddModal={onOpenAddModal}
+        onOpenInternAddModal={() => setIsInternAddModalOpen(true)}
+        activePersonnelType={personnelType}
       />
 
       {/* Employee Add/Edit Modal */}

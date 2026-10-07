@@ -33,16 +33,20 @@ interface EmployeeTableProps {
   records: UnifiedPersonnel[];
   onEditRecord: (record: any, type: 'Employee' | 'Intern') => void;
   onOpenAddModal?: () => void;
+  onOpenInternAddModal?: () => void;
   onOpenCardModal: (record: any, type: 'Employee' | 'Intern') => void;
   onDeleteRecord: (id: string, name: string, type: 'Employee' | 'Intern') => void;
+  activePersonnelType?: 'all' | 'employees' | 'interns';
 }
 
 export const EmployeeTable: React.FC<EmployeeTableProps> = ({ 
   records,
   onEditRecord, 
   onOpenAddModal, 
+  onOpenInternAddModal,
   onOpenCardModal,
-  onDeleteRecord
+  onDeleteRecord,
+  activePersonnelType = 'all'
 }) => {
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -216,13 +220,21 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                       <p className="text-xs text-[#6B7280] font-medium leading-relaxed">
                         We couldn't find any workforce credentials matching your filter or search query.
                       </p>
-                      {onOpenAddModal && (
+                      {activePersonnelType === 'interns' ? (
+                        <button
+                          onClick={onOpenInternAddModal || onOpenAddModal}
+                          className="saas-btn-primary !bg-[#059669] hover:!bg-[#047857] !px-5 !py-2.5 !text-xs !rounded-[14px] flex items-center gap-2 mt-2 shadow-md shadow-[#059669]/20"
+                        >
+                          <UserPlus className="w-4 h-4" />
+                          <span>Onboard Intern</span>
+                        </button>
+                      ) : (
                         <button
                           onClick={onOpenAddModal}
                           className="saas-btn-primary !px-5 !py-2.5 !text-xs !rounded-[14px] flex items-center gap-2 mt-2"
                         >
                           <UserPlus className="w-4 h-4" />
-                          <span>Onboard Personnel</span>
+                          <span>Onboard Employee</span>
                         </button>
                       )}
                     </div>
